@@ -21,4 +21,4 @@ curl --proto '=https' --tlsv1.2 -sSf -L \
 - [Install Nix](https://nixos.asia/en/install)
 - [Run `om health`](https://omnix.page/om/health.html)
 - [Setup home-manager via `nix-dev-home`](https://github.com/juspay/nix-dev-home)
-    - Resulting config will be at `$HOME/nixconfig`.
+    - Resulting config will be accessible at `~/.config/home-manager`. You can modify this later.
