@@ -19,12 +19,12 @@ fi
 
 # Run `om health`
 echo "\n# Check nix health"
-nix --accept-flake-config run github:juspay/omnix health
+nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix health
 
-health_out=$(nix --accept-flake-config run github:juspay/omnix -- health --json 2>/dev/null)
+health_out=$(nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix -- health --json 2>/dev/null)
 is_nix_healthy=$?
 
-echo $health_out | nix run nixpkgs#jq -- -e '.info.nix_installer.type == "DetSys"' > /dev/null
+echo $health_out | nix --extra-experimental-features "flakes nix-command" run nixpkgs#jq -- -e '.info.nix_installer.type == "DetSys"' > /dev/null
 is_detsys_used=$?
 
 # Check if any of the required health checks fail and also that https://github.com/DeterminateSystems/nix-installer is used
