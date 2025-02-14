@@ -1,5 +1,5 @@
 #!/bin/sh
 set -eux
 
-nix --accept-flake-config run github:juspay/omnix health github:juspay/nixone
+nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix health github:juspay/nixone
 
