@@ -17,28 +17,30 @@ if ! which nix > /dev/null; then
   . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 fi
 
+_om() {
+  nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix -- "$@"
+}
+
+_jq() {
+  nix --extra-experimental-features "flakes nix-command" run nixpkgs#jq -- "$@"
+}
+
 # Run `om health`
+# Note: Using `|| true` to ignore exit-code of commands that shouldn't crash the script on failure
 echo "\n# Check nix health"
-nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix health
+{ _om health; health_status=$?; } || true
 
-health_out=$(nix --extra-experimental-features "flakes nix-command" --accept-flake-config run github:juspay/omnix -- health --json 2>/dev/null)
-is_nix_healthy=$?
+health_out=$(_om health --json 2>/dev/null) || true
 
-echo $health_out | nix --extra-experimental-features "flakes nix-command" run nixpkgs#jq -- -e '.info.nix_installer.type == "DetSys"' > /dev/null
-is_detsys_used=$?
-
-# Check if any of the required health checks fail and also that https://github.com/DeterminateSystems/nix-installer is used
-#
-# TODO: evaluate if Uninstalling Nix is too harsh of a suggestion here
-if [ $is_nix_healthy -ne 0 ] && [ $is_detsys_used -ne 0 ]; then
+# Check if <https://github.com/DeterminateSystems/nix-installer> is used or required health checks are failing.
+# We are better off recommending uninstalling for latter as well, see https://github.com/juspay/nixone/pull/27#issuecomment-2681094571
+if [ $health_status -ne 0 ] || echo "$health_out" | _jq -e '.info.nix_installer.type != "DetSys"' > /dev/null; then
   echo "\n# Uninstall Nix: <https://nixos.asia/en/howto/uninstall-nix>. Post uninstall, re-run the script."
+  echo "\n# Note: You will be recommended to uninstall even if your health checks pass, because you are using an unsupported Nix installer"
   exit 1
 fi
 
-echo $health_out | nix run nixpkgs#jq -- -e '.checks.shell.result != "Green"' > /dev/null
-is_home_manager_inactive=$?
-
-if [ $is_home_manager_inactive -eq 0 ]; then
+if echo "$health_out" | _jq -e '.checks.shell.result != "Green"' > /dev/null; then
   # Setup nixos-unified-template
   echo "\n# Setting up home-manager & direnv"
   nix --accept-flake-config run github:juspay/omnix -- \
