@@ -25,5 +25,5 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://juspay.github.io/nixone/health |
 
 - [Install Nix](https://nixos.asia/en/install)
 - [Run `om health`](https://omnix.page/om/health.html)
-- [Setup home-manager via `nix-dev-home`](https://github.com/juspay/nix-dev-home)
+- [Setup home-manager via `nixos-unified-template`](https://github.com/juspay/nixos-unified-template)
     - Resulting config will be accessible at `~/.config/home-manager`. You can modify this later.
