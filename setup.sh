@@ -1,6 +1,31 @@
 #!/bin/sh
 set -eu
 
+args=$(getopt -o 'p' -- "$@")
+eval set -- "$args"
+
+gitEmail="$(id -un)@juspay.in"
+
+# Process options
+while true; do
+  case "$1" in
+  -p)
+    shift # Move to the next argument
+    printf "Enter your email (default: %s): " "$gitEmail"
+    read -r email </dev/tty # Redirect input explicitly from terminal
+    ;;
+  --)
+    shift
+    break
+    ;;
+  *)
+    echo "Invalid option"
+    exit 1
+    ;;
+  esac
+done
+gitEmail="${email:-$gitEmail}" # Use email if provided, else default to username@juspay.in
+
 # Check if nix is already installed
 if ! which nix > /dev/null; then
   # Install Nix
@@ -46,7 +71,7 @@ if echo "$health_out" | _jq -e '.checks.shell.result != "Green"' > /dev/null; th
   nix --accept-flake-config run github:juspay/omnix -- \
     init github:juspay/nixos-unified-template#home -o ~/.config/home-manager \
     --non-interactive \
-    --params '{"username":"'$(id -un)'", "git-name":"'$(id -un)'", "git-email":"'$(id -un)'@juspay.in"}'
+    --params '{"username":"'$(id -un)'", "git-name":"'$(id -un)'", "git-email":"'${gitEmail}'"}'
 
   cd ~/.config/home-manager && nix run
 
